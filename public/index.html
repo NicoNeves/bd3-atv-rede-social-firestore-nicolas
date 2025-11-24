@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATIVIDADE - REDE SOCIAL</title>
+    <link rel="stylesheet" href="./styles.css">
+    
+    <!-- Importando o JQuery e o SocketIo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="header_container">
+        <img src="./images/rede.png" />
+        <h1>ATIVIDADE - REDE SOCIAL</h1>
+    </div>
+
+    <div class="button_post_container">
+        <button name="btn_post" id="btn_post">POST</button>
+    </div>
+
+    <div class="posts_container">
+        <div class="postagens"></div>
+    </div>
+
+    <!-- ESTRUTURA HTML DO FORMULÁRIO MODAL: -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="form_post_container">
+                <h4>FAÇA UM POST</h4>
+                <form name="frm_post" id="frm_post">
+                    <input type="text" name="txt_titulo" id="txt_titulo" placeholder="TITULO DO POST">
+                    <br />
+                    <input type="text" name="txt_post" id="txt_post" placeholder="TEXTO DO POST">
+                    <br />
+                    <button name="btn_postar" id="btn_postar">POSTAR</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        function formatarData(dataISO) {
+            if (!dataISO) return '[Data não disponível]';
+            
+            const data = new Date(dataISO);
+            return `[${data.getDate()}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()} - ${data.getHours().toString().padStart(2, '0')}:${data.getMinutes().toString().padStart(2, '0')}:${data.getSeconds().toString().padStart(2, '0')}]`;
+        }
+
+        function renderPost(postagem) {
+            const dataFormatada = formatarData(postagem.dataHora);
+            
+            $('.postagens').prepend(
+                '<div class="postagem">' +
+                '<strong>' + postagem.titulo + '</strong><br/>' +
+                '<span>' + postagem.texto + '</span><br/>' +
+                '<small>' + dataFormatada + '</small>' +
+                '</div>'
+            );
+        }
+
+        // Quando conectar, recebe todos os posts
+        socket.on('previousMessage', function(postagens) {
+            $('.postagens').empty();
+            
+            if (postagens && postagens.length > 0) {
+                // Ordenar por data (mais recentes primeiro)
+                postagens.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+                
+                for (let postagem of postagens) {
+                    renderPost(postagem);
+                }
+            }
+        });
+
+        // Quando receber um novo post
+        socket.on('receivedMessage', function(postagem) {
+            renderPost(postagem);
+        });
+
+        // Enviar post
+        $('#frm_post').submit(function(event) {
+            event.preventDefault();
+
+            let titulo = $('#txt_titulo').val();
+            let texto = $('#txt_post').val();
+
+            if (titulo && texto) {
+                var postObject = {
+                    titulo: titulo,
+                    texto: texto
+                };
+
+                socket.emit('sendMessage', postObject);
+
+                // Limpar formulário
+                $('#txt_titulo').val('');
+                $('#txt_post').val('');
+                modal.style.display = "none";
+            } else {
+                alert('Por favor, preencha título e texto!');
+            }
+        });
+
+        /***** ABERTURA/FECHAMENTO DO FORMULÁRIO MODAL *****/
+        let btn = document.getElementById('btn_post');
+        let modal = document.getElementById("myModal");
+        let span = document.getElementsByClassName("close")[0];
+
+        // Fechar modal clicando fora
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        });
+
+        // ABRE O FORMULÁRIO MODAL:
+        btn.addEventListener('click', function(event) {
+            event.preventDefault();
+            modal.style.display = "block";
+        });
+
+        // FECHA O FORMULÁRIO MODAL:
+        span.addEventListener('click', function(event) {
+            modal.style.display = "none";
+        });
+    </script>
+</body>
+</html>
