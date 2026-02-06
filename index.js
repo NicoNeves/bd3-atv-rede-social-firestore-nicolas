@@ -15,13 +15,7 @@ const {
 
 // CONFIG DO FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyB2KDYJI1uIhXey-bX_MKSaBewiIdHfmrk",
-  authDomain: "nicolas-firebase.firebaseapp.com",
-  projectId: "nicolas-firebase",
-  storageBucket: "nicolas-firebase.firebasestorage.app",
-  messagingSenderId: "219571296771",
-  appId: "1:219571296771:web:e49f2209926a6a045a0c36",
-  measurementId: "G-PD6FCDCZ3N"
+
 };
 
 const appFirebase = initializeApp(firebaseConfig);
